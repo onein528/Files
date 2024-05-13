@@ -134,7 +134,7 @@ namespace Files.App.Data.Models
 
 				dialogOptions.lpConnRes = null;
 
-				if (result == unchecked((uint)-1))
+				if ((uint)result == unchecked((uint)-1))
 					return false;
 
 				if (result == 0)

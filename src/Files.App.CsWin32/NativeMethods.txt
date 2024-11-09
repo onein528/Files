@@ -135,3 +135,11 @@ PSGetPropertyKeyFromName
 ShellExecuteEx
 CoTaskMemFree
 QueryDosDevice
+GetProcAddress
+LoadLibrary
+GetCurrentThread
+DetourRestoreAfterWith
+DetourTransactionBegin
+DetourUpdateThread
+DetourAttach
+DetourTransactionCommit

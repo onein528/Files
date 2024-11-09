@@ -8,46 +8,44 @@ using Windows.Win32.System.Com;
 
 namespace Windows.Win32
 {
-	/// <summary>
-	/// Contains a heap pointer allocated via CoTaskMemAlloc and a set of methods to work with the pointer safely.
-	/// </summary>
-	public unsafe static class DataExchangeHostHook
+	public unsafe class DataExchangeHostWorkaround
 	{
         public bool TryHook()
         {
 			/*
-			*(void**)&pGetSidSubAuthority = GetProcAddress(LoadLibraryA("KernelBase.dll"), "GetSidSubAuthority");
+			var pGetSidSubAuthority  = PInvoke.GetProcAddress(PInvoke.LoadLibrary("KernelBase.dll"), "GetSidSubAuthority");
 	
 			long res = 0l;
-			DetourRestoreAfterWith();
-			DetourTransactionBegin();
-			res = DetourUpdateThread(GetCurrentThread());
-			res = DetourAttach(&(LPVOID&)pGetSidSubAuthority, hook_GetSidSubAuthority);
-			res = DetourTransactionCommit();
+			PInvoke.DetourRestoreAfterWith();
+			PInvoke.DetourTransactionBegin();
+			res = PInvoke.DetourUpdateThread(PInvoke.GetCurrentThread());
+			res = PInvoke.DetourAttach((void**)&pGetSidSubAuthority, &GetSidSubAuthorityHook);
+			res = PInvoke.DetourTransactionCommit();
 
-			return res == (long)WIN32_ERROR.NO_ERROR;
+			return res is (long)WIN32_ERROR.NO_ERROR;
 			*/
         }
 
-		private uint* WINAPI hook_GetSidSubAuthority(PSID pSid, uint nSubAuthority)
+		[UnmanagedCallersOnly(CallConvs = [typeof(CallConvStdcall)])]
+		private uint* GetSidSubAuthorityHook(PSID pSid, uint nSubAuthority)
 		{
 			/*
 			uint* ret = pGetSidSubAuthority(pSid, nSubAuthority);
 
-			if (GetLastError() == 0)
+			if (GetWin32LastError() == 0)
 			{
 				if (*ret >= 0x3000 && *ret < 0x10000)
 				{
-					DWORD oriIL = *ret;
+					uint oriIL = *ret;
 					*ret = 0x2000;
 
 					// Medium IL, check condition: (unsigned int)(ilLevel - 0x2000) <= 0xFFF
-					OutputDebugStringA(std::format("[PunchDataExchangeHost] replace TokenIL from 0x{:x} to 0x{:x}", oriIL, *ret).c_str());
-					SetLastError(0);
+					//OutputDebugStringA(std::format("[PunchDataExchangeHost] replace TokenIL from 0x{:x} to 0x{:x}", oriIL, *ret).c_str());
 				}
 			}
 			return ret;
 			*/
+
 			return null;
 		}
 	}

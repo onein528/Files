@@ -160,3 +160,6 @@ IApplicationDocumentLists
 ApplicationDocumentLists
 IApplicationActivationManager
 MENU_ITEM_TYPE
+IShellFolder
+IEnumIDList
+SHCreateItemWithParent

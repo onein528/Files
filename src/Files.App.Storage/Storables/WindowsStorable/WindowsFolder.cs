@@ -25,31 +25,31 @@ namespace Files.App.Storage.Storables
 				foreach (var item in GetChildren())
 					return yield item;
 			});
+		}
 
-			IEnumerable<IStorable> GetChildren()
+		public IEnumerable<IStorable> GetChildren()
+		{
+			using ComPtr<IEnumIDList> pEnumIDList = default;
+			HRESULT hr = _ptr.Get()->EnumObjects(
+				null,
+				(SHCONTF)0,
+				(void**)pEnumIDList.GetAddressOf())
+			.ThrowIfFailed();
+
+			ComHeapPtr<ITEMIDLIST> pChildPidl = default;
+			ComPtr<IShellItem> pChildShellItem = default;
+			while (pEnumIDList.Get()->Next(1, pChildPidl.GetAddressOf(), null) == HRESULT.S_OK)
 			{
-				using ComPtr<IEnumIDList> pEnumIDList = default;
-				HRESULT hr = _ptr.Get()->EnumObjects(
+				// Create IShellItem
+				PInvoke.SHCreateItemWithParent(
 					null,
-					SHCONTF.SHCONTF_FOLDERS | SHCONTF.SHCONTF_NONFOLDERS | SHCONTF.SHCONTF_INCLUDEHIDDEN | SHCONTF.SHCONTF_INCLUDESUPERHIDDEN,
-					(void**)pEnumIDList.GetAddressOf())
+					_ptr.Get(),
+					pChildPidl.Get()
+					PInvoke.IID_IShellItem,
+					(void**)pChildShellItem.GetAddressOf())
 				.ThrowIfFailed();
 
-				ComHeapPtr<ITEMIDLIST> pChildPidl = default;
-				ComPtr<IShellItem> pChildShellItem = default;
-				while (SUCCEEDED(pEnumIDList.Get()->Next(1, pChildPidl.GetAddressOf(), null)))
-				{
-					// Create IShellItem
-					PInvoke.SHCreateItemWithParent(
-						null,
-						_ptr.Get(),
-						pChildPidl.Get()
-						PInvoke.IID_IShellItem,
-						(void**)pChildShellItem.GetAddressOf())
-					.ThrowIfFailed();
-
-					return yield NativeStorable.Parse(pChildShellItem);
-				}
+				return yield NativeStorable.Parse(pChildShellItem);
 			}
 		}
     }

@@ -20,11 +20,11 @@ namespace Files.App.Controls
     {
 		private ListViewBase _listViewBase;
 		private ScrollViewer _scrollViewer;
-		private Point originDragPoint;
+		private Point _originDragPoint;
 		private Dictionary<object, System.Drawing.Rectangle> _listViewItemsPosition;
-		private List<object> prevSelectedItems;
-		private List<object> prevSelectedItemsDrag;
-		private ItemSelectionStrategy selectionStrategy;
+		private List<object> _prevSelectedItems;
+		private List<object> _prevSelectedItemsDrag;
+		private ItemSelectionStrategy _selectionStrategy;
 
 		private SelectionChangedEventHandler SelectionChanged;
 
@@ -56,31 +56,33 @@ namespace Files.App.Controls
 
 		private void ListViewBase_PointerReleased(object sender, PointerRoutedEventArgs e)
 		{
-			if (scrollViewer is null) return;
-			Canvas.SetLeft(selectionRectangle, 0);
-			Canvas.SetTop(selectionRectangle, 0);
-			selectionRectangle.Width = 0;
-			selectionRectangle.Height = 0;
-			_listViewBase.PointerMoved -= RectangleSelection_PointerMoved;
+			if (_scrollViewer is null)
+                return;
 
+			Canvas.SetLeft(this, 0);
+			Canvas.SetTop(this, 0);
+			this.Width = 0;
+			this.Height = 0;
+
+			_listViewBase.PointerMoved -= ListViewBase_PointerMoved;
 			_scrollViewer.ViewChanged -= ScrollViewer_ViewChanged;
 			_listViewBase.ReleasePointerCapture(e.Pointer);
-			if (selectionChanged is not null)
+
+			if (SelectionChanged is not null)
 			{
 				// Restore and trigger SelectionChanged event
 				_listViewBase.SelectionChanged -= SelectionChanged;
 				_listViewBase.SelectionChanged += SelectionChanged;
-				if (prevSelectedItems is null || !_listViewBase.SelectedItems.SequenceEqual(prevSelectedItems))
-					selectionChanged(sender, null); // Trigger SelectionChanged event if the selection has changed
+				if (_prevSelectedItems is null || !_listViewBase.SelectedItems.SequenceEqual(_prevSelectedItems))
+					SelectionChanged(sender, null); // Trigger SelectionChanged event if the selection has changed
 			}
 
-			if (selectionState is SelectionState.Active || e.OriginalSource is ListViewBase)
+			if (_selectionState is SelectionState.Active || e.OriginalSource is ListViewBase)
 				OnSelectionEnded(); // Always trigger SelectionEnded to focus the file list when clicking on the empty space (#2977)
 
-			selectionStrategy = null;
-			selectionState = SelectionState.Inactive;
-
-			prevSelectedItemsDrag = null;
+			_selectionStrategy = null;
+			_selectionState = SelectionState.Inactive;
+			_prevSelectedItemsDrag = null;
 
 			e.Handled = true;
 		}
@@ -97,11 +99,16 @@ namespace Files.App.Controls
 			if (_scrollViewer is null)
 				return;
 
-			var currentPoint = e.GetCurrentPoint(uiElement);
-			var verticalOffset = scrollViewer.VerticalOffset;
+			var currentPoint = e.GetCurrentPoint(_listViewBase);
+			var verticalOffset = _scrollViewer.VerticalOffset;
+
 			if (_selectionState is SelectionState.Starting)
 			{
-				if (!HasMovedMinimalDelta(originDragPoint.X, originDragPoint.Y - verticalOffset, currentPoint.Position.X, currentPoint.Position.Y))
+				if (!HasMovedMinimalDelta(
+                    _originDragPoint.X,
+                    _originDragPoint.Y - verticalOffset,
+                    currentPoint.Position.X,
+                    currentPoint.Position.Y))
 					return;
 
 				// Clear selected items once if the pointer is pressed and moved
@@ -112,15 +119,16 @@ namespace Files.App.Controls
 
 			if (currentPoint.Properties.IsLeftButtonPressed)
 			{
-				var originDragPointShifted = new Point(originDragPoint.X, originDragPoint.Y - verticalOffset); // Initial drag point relative to the topleft corner
+                // Initial drag point relative to the topleft corner
+				var originDragPointShifted = new Point(_originDragPoint.X, _originDragPoint.Y - verticalOffset);
 				base.DrawRectangle(currentPoint, originDragPointShifted, _listViewBase);
 
 				// Selected area considering scrolled offset
 				var rect = new System.Drawing.Rectangle(
-                    (int)Canvas.GetLeft(selectionRectangle),
-                    (int)Math.Min(originDragPoint.Y, currentPoint.Position.Y + verticalOffset),
-                    (int)selectionRectangle.Width,
-                    (int)Math.Abs(originDragPoint.Y - (currentPoint.Position.Y + verticalOffset)));
+                    (int)Canvas.GetLeft(this),
+                    (int)Math.Min(_originDragPoint.Y, currentPoint.Position.Y + verticalOffset),
+                    (int)this.Width,
+                    (int)Math.Abs(_originDragPoint.Y - (currentPoint.Position.Y + verticalOffset)));
 
 				var selectedItemsBeforeChange = _listViewBase.SelectedItems.ToArray();
 
@@ -136,13 +144,13 @@ namespace Files.App.Controls
 					catch (ArgumentException)
 					{
 						// Item is not present in the ItemsSource
-						itemsPosition.Remove(item);
+						_listViewItemsPosition.Remove(item);
 					}
 				}
-				if (currentPoint.Position.Y > uiElement.ActualHeight - 20)
+				if (currentPoint.Position.Y > _listViewBase.ActualHeight - 20)
 				{
 					// Scroll down the list if pointer is at the bottom
-					var scrollIncrement = Math.Min(currentPoint.Position.Y - (uiElement.ActualHeight - 20), 40);
+					var scrollIncrement = Math.Min(currentPoint.Position.Y - (_listViewBase.ActualHeight - 20), 40);
 					_scrollViewer.ChangeView(null, verticalOffset + scrollIncrement, null, false);
 				}
 				else if (currentPoint.Position.Y < 20)
@@ -152,15 +160,15 @@ namespace Files.App.Controls
 					_scrollViewer.ChangeView(null, verticalOffset - scrollIncrement, null, false);
 				}
 
-				if (selectionChanged is not null)
+				if (SelectionChanged is not null)
 				{
 					var currentSelectedItemsDrag = _listViewBase.SelectedItems.Cast<object>().ToList();
-					if (prevSelectedItemsDrag is null || !prevSelectedItemsDrag.SequenceEqual(currentSelectedItemsDrag))
+					if (_prevSelectedItemsDrag is null || !_prevSelectedItemsDrag.SequenceEqual(currentSelectedItemsDrag))
 					{
-						// Trigger SelectionChanged event if the selection has changed
-						var removedItems = selectedItemsBeforeChange.Except(currentSelectedItemsDrag).ToList();
-						selectionChanged(sender, new SelectionChangedEventArgs(removedItems, currentSelectedItemsDrag));
-						prevSelectedItemsDrag = currentSelectedItemsDrag;
+                        // Trigger SelectionChanged event if the selection has changed
+                        var removedItems = selectedItemsBeforeChange.Except(currentSelectedItemsDrag).ToList();
+						SelectionChanged(sender, new SelectionChangedEventArgs(removedItems, currentSelectedItemsDrag));
+						_prevSelectedItemsDrag = currentSelectedItemsDrag;
 					}
 				}
 			}
@@ -171,42 +179,42 @@ namespace Files.App.Controls
 			if (_scrollViewer is null)
 				return;
 
-			itemsPosition.Clear();
+			_listViewItemsPosition.Clear();
 
 			_scrollViewer.ViewChanged -= ScrollViewer_ViewChanged;
 			_scrollViewer.ViewChanged += ScrollViewer_ViewChanged;
 
-			originDragPoint = new Point(e.GetCurrentPoint(_listViewBase).Position.X, e.GetCurrentPoint(_listViewBase).Position.Y); // Initial drag point relative to the topleft corner
-			prevSelectedItems = _listViewBase.SelectedItems.Cast<object>().ToList(); // Save current selected items
+			_originDragPoint = new Point(e.GetCurrentPoint(_listViewBase).Position.X, e.GetCurrentPoint(_listViewBase).Position.Y); // Initial drag point relative to the topleft corner
+			_prevSelectedItems = _listViewBase.SelectedItems.Cast<object>().ToList(); // Save current selected items
 
 			var verticalOffset = _scrollViewer.VerticalOffset;
-			originDragPoint.Y += verticalOffset; // Initial drag point relative to the top of the list (considering scrolled offset)
+			_originDragPoint.Y += verticalOffset; // Initial drag point relative to the top of the list (considering scrolled offset)
 			if (!e.GetCurrentPoint(_listViewBase).Properties.IsLeftButtonPressed || e.Pointer.PointerDeviceType is Microsoft.UI.Input.PointerDeviceType.Touch)
 				return; // Trigger only on left click, do not trigger with touch
 
 			FetchItemsPosition();
 
-			selectionStrategy = e.KeyModifiers.HasFlag(VirtualKeyModifiers.Control)
-                ? new InvertPreviousItemSelectionStrategy(_listViewBase.SelectedItems, prevSelectedItems)
+			_selectionStrategy = e.KeyModifiers.HasFlag(VirtualKeyModifiers.Control)
+                ? new InvertPreviousItemSelectionStrategy(_listViewBase.SelectedItems, _prevSelectedItems)
                 : e.KeyModifiers.HasFlag(VirtualKeyModifiers.Shift)
-                    ? new ExtendPreviousItemSelectionStrategy(_listViewBase.SelectedItems, prevSelectedItems)
+                    ? new ExtendPreviousItemSelectionStrategy(_listViewBase.SelectedItems, _prevSelectedItems)
                     : new IgnorePreviousItemSelectionStrategy(_listViewBase.SelectedItems);
 
-			selectionStrategy.HandleNoItemSelected();
+			_selectionStrategy.HandleNoItemSelected();
 
 			_listViewBase.PointerMoved -= ListViewBase_PointerMoved;
 			_listViewBase.PointerMoved += ListViewBase_PointerMoved;
-			if (selectionChanged is not null)
+			if (SelectionChanged is not null)
 				_listViewBase.SelectionChanged -= SelectionChanged; // Unsunscribe from SelectionChanged event for performance
 
 			_listViewBase.CapturePointer(e.Pointer);
-			selectionState = SelectionState.Starting;
+			_selectionState = SelectionState.Starting;
 		}
 
 		private void FetchItemsPosition()
 		{
 			var verticalOffset = _scrollViewer.VerticalOffset;
-			foreach (var item in _listViewBase.Items.ToList().Except(itemsPosition.Keys))
+			foreach (var item in _listViewBase.Items.ToList().Except(_listViewItemsPosition.Keys))
 			{
 				var listViewItem = (FrameworkElement)_listViewBase.ContainerFromItem(item);
 				if (listViewItem is null)
@@ -215,7 +223,7 @@ namespace Files.App.Controls
 				var gt = listViewItem.TransformToVisual(_listViewBase);
 				var itemStartPoint = gt.TransformPoint(new Point(0, verticalOffset)); // Get item position relative to the top of the list (considering scrolled offset)
 				var itemRect = new System.Drawing.Rectangle((int)itemStartPoint.X, (int)itemStartPoint.Y, (int)listViewItem.ActualWidth, (int)listViewItem.ActualHeight);
-				itemsPosition[item] = itemRect;
+				_listViewItemsPosition[item] = itemRect;
 			}
 		}
     }

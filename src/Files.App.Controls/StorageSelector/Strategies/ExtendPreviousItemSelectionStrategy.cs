@@ -6,12 +6,13 @@ using System.Runtime.InteropServices;
 
 namespace Files.App.Controls
 {
-	internal sealed class InvertPreviousItemSelectionStrategy : ItemSelectionStrategy
+	public sealed class ExtendPreviousItemSelectionStrategy : ItemSelectionStrategy
 	{
 		private readonly List<object> prevSelectedItems;
 
-		public InvertPreviousItemSelectionStrategy(ICollection<object> selectedItems, List<object> prevSelectedItems) : base(selectedItems)
+		public ExtendPreviousItemSelectionStrategy(ICollection<object> selectedItems, List<object> prevSelectedItems) : base(selectedItems)
 		{
+			this.prevSelectedItems = prevSelectedItems;
 			this.prevSelectedItems = prevSelectedItems;
 		}
 
@@ -19,16 +20,10 @@ namespace Files.App.Controls
 		{
 			try
 			{
-				if (prevSelectedItems.Contains(item))
-				{
-					selectedItems.Remove(item);
-				}
-				else if (!selectedItems.Contains(item))
-				{
+				if (!selectedItems.Contains(item))
 					selectedItems.Add(item);
-				}
 			}
-			catch (COMException) // List is being modified
+			catch (COMException) // The list is being modified (#5325)
 			{
 			}
 		}
@@ -38,19 +33,10 @@ namespace Files.App.Controls
 			try
 			{
 				// Restore selection on items not intersecting with the rectangle
-				if (prevSelectedItems.Contains(item))
-				{
-					if (!selectedItems.Contains(item))
-					{
-						selectedItems.Add(item);
-					}
-				}
-				else
-				{
+				if (!prevSelectedItems.Contains(item))
 					selectedItems.Remove(item);
-				}
 			}
-			catch (COMException) // List is being modified
+			catch (COMException) // The list is being modified (#5325)
 			{
 			}
 		}

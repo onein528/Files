@@ -16,8 +16,8 @@ using DispatcherQueueTimer = Microsoft.UI.Dispatching.DispatcherQueueTimer;
 
 namespace Files.App.Controls
 {
-	public sealed class RectangleSelection_ListViewBase : RectangleSelection
-	{
+    public class StorageSelector
+    {
 		private ListViewBase uiElement;
 		private ScrollViewer scrollViewer;
 		private SelectionChangedEventHandler selectionChanged;
@@ -251,5 +251,5 @@ namespace Files.App.Controls
 				}
 			}
 		}
-	}
+    }
 }

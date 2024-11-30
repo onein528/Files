@@ -18,11 +18,9 @@ namespace Files.App.Controls
 			{
 				// Select item intersection with the rectangle
 				if (!selectedItems.Contains(item))
-				{
 					selectedItems.Add(item);
-				}
 			}
-			catch (COMException) // List is being modified
+			catch (COMException) // The list is being modified (#5325)
 			{
 			}
 		}
@@ -33,7 +31,7 @@ namespace Files.App.Controls
 			{
 				selectedItems.Remove(item);
 			}
-			catch (COMException) // List is being modified
+			catch (COMException) // The list is being modified (#5325)
 			{
 			}
 		}

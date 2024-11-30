@@ -21,7 +21,8 @@ namespace Files.App.Controls
 		// Fields
 
 		protected readonly double MinSelectionDelta = 5.0;
-		protected SelectionState selectionState;
+		protected StorageSelectorSelectionState _selectionState;
+		protected DispatcherQueueTimer _timer;
 
 		// Events
 
@@ -31,6 +32,7 @@ namespace Files.App.Controls
 
 		protected StorageSelector()
 		{
+			_timer = DispatcherQueue.GetForCurrentThread().CreateTimer();
 		}
 
 		protected void OnSelectionStarted()

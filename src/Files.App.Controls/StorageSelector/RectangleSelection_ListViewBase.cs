@@ -14,7 +14,7 @@ using Windows.System;
 using DispatcherQueue = Microsoft.UI.Dispatching.DispatcherQueue;
 using DispatcherQueueTimer = Microsoft.UI.Dispatching.DispatcherQueueTimer;
 
-namespace Files.App.UserControls.Selection
+namespace Files.App.Controls
 {
 	public sealed class RectangleSelection_ListViewBase : RectangleSelection
 	{

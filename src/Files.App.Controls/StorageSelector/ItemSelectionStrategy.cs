@@ -3,7 +3,7 @@
 
 using System.Collections.Generic;
 
-namespace Files.App.UserControls.Selection
+namespace Files.App.Controls
 {
 	public abstract class ItemSelectionStrategy
 	{

@@ -8,7 +8,7 @@ using Microsoft.UI.Xaml.Shapes;
 using System;
 using Windows.Foundation;
 
-namespace Files.App.UserControls.Selection
+namespace Files.App.Controls
 {
 	/// <summary>
 	/// Adds drag selection to a ListView, GridView or DataGrid

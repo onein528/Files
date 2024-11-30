@@ -2,7 +2,7 @@
 // Licensed under the MIT License. See the LICENSE.
 
 using CommunityToolkit.WinUI.UI;
-using Files.App.UserControls.Selection;
+using Files.App.Controls;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;

@@ -3,7 +3,7 @@
 
 namespace Files.App.Controls
 {
-	public sealed StorageSelectorSelectionState
+	public sealed RectanglarSelectionVisualState
 	{
 		Inactive,
 

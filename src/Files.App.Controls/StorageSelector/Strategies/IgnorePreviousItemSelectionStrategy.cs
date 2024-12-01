@@ -17,8 +17,8 @@ namespace Files.App.Controls
 			try
 			{
 				// Select item intersection with the rectangle
-				if (!selectedItems.Contains(item))
-					selectedItems.Add(item);
+				if (!_selectedItems.Contains(item))
+					_selectedItems.Add(item);
 			}
 			catch (COMException) // The list is being modified (#5325)
 			{
@@ -29,7 +29,7 @@ namespace Files.App.Controls
 		{
 			try
 			{
-				selectedItems.Remove(item);
+				_selectedItems.Remove(item);
 			}
 			catch (COMException) // The list is being modified (#5325)
 			{
@@ -38,12 +38,12 @@ namespace Files.App.Controls
 
 		public override void StartSelection()
 		{
-			selectedItems.Clear();
+			_selectedItems.Clear();
 		}
 
 		public override void HandleNoItemSelected()
 		{
-			selectedItems.Clear();
+			_selectedItems.Clear();
 		}
 	}
 }

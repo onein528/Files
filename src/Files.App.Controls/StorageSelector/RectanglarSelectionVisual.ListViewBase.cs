@@ -16,7 +16,7 @@ using DispatcherQueueTimer = Microsoft.UI.Dispatching.DispatcherQueueTimer;
 
 namespace Files.App.Controls
 {
-    public class StorageSelector
+    public class RectanglarSelectionVisual
     {
 		private ListViewBase _listViewBase;
 		private ScrollViewer _scrollViewer;
@@ -73,15 +73,18 @@ namespace Files.App.Controls
 				// Restore and trigger SelectionChanged event
 				_listViewBase.SelectionChanged -= SelectionChanged;
 				_listViewBase.SelectionChanged += SelectionChanged;
+
+				// Trigger SelectionChanged event if the selection has changed
 				if (_prevSelectedItems is null || !_listViewBase.SelectedItems.SequenceEqual(_prevSelectedItems))
-					SelectionChanged(sender, null); // Trigger SelectionChanged event if the selection has changed
+					SelectionChanged(sender, null);
 			}
 
-			if (_selectionState is SelectionState.Active || e.OriginalSource is ListViewBase)
-				OnSelectionEnded(); // Always trigger SelectionEnded to focus the file list when clicking on the empty space (#2977)
+			// Always trigger SelectionEnded to focus the file list when clicking on the empty space (#2977)
+			if (_selectionState is RectanglarSelectionVisualState.Active || e.OriginalSource is ListViewBase)
+				OnSelectionEnded();
 
 			_selectionStrategy = null;
-			_selectionState = SelectionState.Inactive;
+			_selectionState = RectanglarSelectionVisualState.Inactive;
 			_prevSelectedItemsDrag = null;
 
 			e.Handled = true;
@@ -89,7 +92,7 @@ namespace Files.App.Controls
 
 		private void ListViewBase_SizeChanged(object sender, object e)
 		{
-			_scrollViewer ??= DependencyObjectHelpers.FindChild<ScrollViewer>(uiElement, sv => sv.VerticalScrollMode != ScrollMode.Disabled);
+			_scrollViewer ??= DependencyObjectHelpers.FindChild<ScrollViewer>(_listViewBase, sv => sv.VerticalScrollMode != ScrollMode.Disabled);
 			if (_scrollViewer is not null)
 				_listViewBase.SizeChanged -= ListViewBase_SizeChanged;
 		}
@@ -102,7 +105,7 @@ namespace Files.App.Controls
 			var currentPoint = e.GetCurrentPoint(_listViewBase);
 			var verticalOffset = _scrollViewer.VerticalOffset;
 
-			if (_selectionState is SelectionState.Starting)
+			if (_selectionState is RectanglarSelectionVisualState.Starting)
 			{
 				if (!HasMovedMinimalDelta(
                     _originDragPoint.X,
@@ -114,7 +117,7 @@ namespace Files.App.Controls
 				// Clear selected items once if the pointer is pressed and moved
 				_selectionStrategy.StartSelection();
 				OnSelectionStarted();
-				_selectionState = SelectionState.Active;
+				_selectionState = RectanglarSelectionVisualState.Active;
 			}
 
 			if (currentPoint.Properties.IsLeftButtonPressed)
@@ -132,7 +135,7 @@ namespace Files.App.Controls
 
 				var selectedItemsBeforeChange = _listViewBase.SelectedItems.ToArray();
 
-				foreach (var item in itemsPosition.ToList())
+				foreach (var item in _listViewItemsPosition.ToList())
 				{
 					try
 					{
@@ -208,7 +211,7 @@ namespace Files.App.Controls
 				_listViewBase.SelectionChanged -= SelectionChanged; // Unsunscribe from SelectionChanged event for performance
 
 			_listViewBase.CapturePointer(e.Pointer);
-			_selectionState = SelectionState.Starting;
+			_selectionState = RectanglarSelectionVisualState.Starting;
 		}
 
 		private void FetchItemsPosition()
@@ -216,8 +219,7 @@ namespace Files.App.Controls
 			var verticalOffset = _scrollViewer.VerticalOffset;
 			foreach (var item in _listViewBase.Items.ToList().Except(_listViewItemsPosition.Keys))
 			{
-				var listViewItem = (FrameworkElement)_listViewBase.ContainerFromItem(item);
-				if (listViewItem is null)
+				if (_listViewBase.ContainerFromItem(item) is not FrameworkElement listViewItem)
 					continue; // Element is not loaded (virtualized list)
 
 				var gt = listViewItem.TransformToVisual(_listViewBase);

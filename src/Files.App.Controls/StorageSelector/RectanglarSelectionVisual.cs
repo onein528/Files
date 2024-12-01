@@ -16,12 +16,12 @@ using DispatcherQueueTimer = Microsoft.UI.Dispatching.DispatcherQueueTimer;
 
 namespace Files.App.Controls
 {
-	public class StorageSelector : Rectangle
+	public class RectanglarSelectionVisual : Rectangle
 	{
 		// Fields
 
 		protected readonly double MinSelectionDelta = 5.0;
-		protected StorageSelectorSelectionState _selectionState;
+		protected RectanglarSelectionVisualState _selectionState;
 		protected DispatcherQueueTimer _timer;
 
 		// Events
@@ -30,7 +30,7 @@ namespace Files.App.Controls
 		public event SelectionStatusHandler SelectionStarted;
 		public event SelectionStatusHandler SelectionEnded;
 
-		protected StorageSelector()
+		protected RectanglarSelectionVisual()
 		{
 			_timer = DispatcherQueue.GetForCurrentThread().CreateTimer();
 		}
@@ -45,12 +45,15 @@ namespace Files.App.Controls
 			SelectionEnded?.Invoke(this, EventArgs.Empty);
 		}
 
-		protected void DrawRectangle(PointerPoint currentPoint, Point originDragPointShifted, FrameworkElement uiElement)
+		protected void DrawRectangle(
+			PointerPoint currentPoint,
+			Point originDragPointShifted,
+			FrameworkElement frameworkElement)
 		{
 			// Redraw selection rectangle according to the new point
 			if (currentPoint.Position.X >= originDragPointShifted.X)
 			{
-				double maxWidth = uiElement.ActualWidth - originDragPointShifted.X;
+				double maxWidth = frameworkElement.ActualWidth - originDragPointShifted.X;
 				if (currentPoint.Position.Y <= originDragPointShifted.Y)
 				{
 					// Pointer was moved up and right

@@ -7,11 +7,11 @@ namespace Files.App.Controls
 {
 	public abstract class ItemSelectionStrategy
 	{
-		protected readonly ICollection<object> selectedItems;
+		protected readonly ICollection<object> _selectedItems;
 
 		protected ItemSelectionStrategy(ICollection<object> selectedItems)
 		{
-			this.selectedItems = selectedItems;
+			_selectedItems = selectedItems;
 		}
 
 		public abstract void HandleIntersectionWithItem(object item);

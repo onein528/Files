@@ -8,20 +8,19 @@ namespace Files.App.Controls
 {
 	public sealed class ExtendPreviousItemSelectionStrategy : ItemSelectionStrategy
 	{
-		private readonly List<object> prevSelectedItems;
+		private readonly List<object> _prevSelectedItems;
 
 		public ExtendPreviousItemSelectionStrategy(ICollection<object> selectedItems, List<object> prevSelectedItems) : base(selectedItems)
 		{
-			this.prevSelectedItems = prevSelectedItems;
-			this.prevSelectedItems = prevSelectedItems;
+			_prevSelectedItems = prevSelectedItems;
 		}
 
 		public override void HandleIntersectionWithItem(object item)
 		{
 			try
 			{
-				if (!selectedItems.Contains(item))
-					selectedItems.Add(item);
+				if (!_selectedItems.Contains(item))
+					_selectedItems.Add(item);
 			}
 			catch (COMException) // The list is being modified (#5325)
 			{
@@ -33,8 +32,8 @@ namespace Files.App.Controls
 			try
 			{
 				// Restore selection on items not intersecting with the rectangle
-				if (!prevSelectedItems.Contains(item))
-					selectedItems.Remove(item);
+				if (!_prevSelectedItems.Contains(item))
+					_selectedItems.Remove(item);
 			}
 			catch (COMException) // The list is being modified (#5325)
 			{

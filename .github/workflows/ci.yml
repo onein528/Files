@@ -108,66 +108,24 @@ jobs:
       with:
         global-json-file: global.json
 
-    - name: Restore NuGet
-      run: 'nuget restore $env:SOLUTION_PATH'
-
-    - name: Restore Files
-      run: |
-        msbuild $env:SOLUTION_PATH `
-          -t:Restore `
-          -p:Platform=$env:ARCHITECTURE `
-          -p:Configuration=$env:CONFIGURATION `
-          -p:PublishReadyToRun=true
-
-    - if: env.CONFIGURATION != env.AUTOMATED_TESTS_CONFIGURATION || env.ARCHITECTURE != env.AUTOMATED_TESTS_ARCHITECTURE 
+    - if: env.CONFIGURATION != env.AUTOMATED_TESTS_CONFIGURATION || env.ARCHITECTURE != env.AUTOMATED_TESTS_ARCHITECTURE
       name: Build Files
       run: |
-        msbuild `
-          $env:PACKAGE_PROJECT_PATH `
-          -t:Build `
-          -clp:ErrorsOnly `
-          -p:Configuration=$env:CONFIGURATION `
-          -p:Platform=$env:ARCHITECTURE `
-          -p:AppxBundle=Never
+        . './.github/scripts/Build-AppSolution.ps1' `
+          -Branch "$env:BUILD_BRANCH" -Configuration "$env:CONFIGURATION" -Platform "$env:PLATFORM"
 
     - if: env.CONFIGURATION == env.AUTOMATED_TESTS_CONFIGURATION && env.ARCHITECTURE == env.AUTOMATED_TESTS_ARCHITECTURE
-      name: Create self signed cert as a pfx file
-      run: ./.github/scripts/Generate-SelfCertPfx.ps1 -Destination "$env:APPX_SELFSIGNED_CERT_PATH"
-
-    - if: env.CONFIGURATION == env.AUTOMATED_TESTS_CONFIGURATION && env.ARCHITECTURE == env.AUTOMATED_TESTS_ARCHITECTURE
-      name: Build & package Files
+      name: Build Files
       run: |
-        msbuild `
-          $env:PACKAGE_PROJECT_PATH `
-          -t:Build `
-          -clp:ErrorsOnly `
-          -p:Configuration=$env:CONFIGURATION `
-          -p:Platform=$env:ARCHITECTURE `
-          -p:AppxBundlePlatforms=$env:AUTOMATED_TESTS_ARCHITECTURE `
-          -p:AppxBundle=Always `
-          -p:UapAppxPackageBuildMode=SideloadOnly `
-          -p:AppxPackageDir=$env:APPX_PACKAGE_DIR `
-          -p:AppxPackageSigningEnabled=true `
-          -p:PackageCertificateKeyFile=$env:APPX_SELFSIGNED_CERT_PATH `
-          -p:PackageCertificatePassword="" `
-          -p:PackageCertificateThumbprint=""
-
-    - if: env.ARCHITECTURE == env.AUTOMATED_TESTS_ARCHITECTURE && env.CONFIGURATION == env.AUTOMATED_TESTS_CONFIGURATION
-      name: Build interaction tests
-      run: |
+        . './.github/scripts/Generate-SelfCertPfx.ps1' -Destination "$env:APPX_SELFSIGNED_CERT_PATH"
+        . './.github/scripts/Build-AppSolution.ps1' `
+          -Branch "$env:BUILD_BRANCH" -Configuration "$env:CONFIGURATION" -Platform "$env:PLATFORM"
         msbuild $env:AUTOMATED_TESTS_PROJECT_PATH `
           -t:Build `
           -clp:ErrorsOnly `
           -p:Configuration=$env:CONFIGURATION `
           -p:Platform=$env:AUTOMATED_TESTS_ARCHITECTURE
-
-    - if: env.ARCHITECTURE == env.AUTOMATED_TESTS_ARCHITECTURE && env.CONFIGURATION == env.AUTOMATED_TESTS_CONFIGURATION
-      name: Copy tests bin to the artifacts dir
-      shell: pwsh
-      run: |
-        Copy-Item `
-          -Path "$env:AUTOMATED_TESTS_PROJECT_DIR\bin" `
-          -Destination "$env:AUTOMATED_TESTS_ASSEMBLY_DIR" -Recurse
+        Copy-Item -Path "$env:AUTOMATED_TESTS_PROJECT_DIR\bin" -Destination "$env:AUTOMATED_TESTS_ASSEMBLY_DIR" -Recurse
 
     - if: env.ARCHITECTURE == env.AUTOMATED_TESTS_ARCHITECTURE && env.CONFIGURATION == env.AUTOMATED_TESTS_CONFIGURATION
       name: Upload the packages to the Artifacts

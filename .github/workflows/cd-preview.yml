@@ -30,7 +30,7 @@ jobs:
     strategy:
       fail-fast: false
     env:
-      BUILD_BRANCH: 'SideloadPreview'
+      BRANCH: 'SideloadPreview'
 
     steps:
     - name: Checkout the repository
@@ -47,19 +47,26 @@ jobs:
     - name: Build Files
       run: |
         . './.github/scripts/Configure-AppxManifest.ps1' `
-          -Branch "$env:BUILD_BRANCH" `
-          -PackageManifestPath "$env:PACKAGE_MANIFEST_PATH" -WorkingDir "$env:WORKING_DIR" -Publisher "$env:SECRET_PUBLISHER_NAME" -SecretBingMapsKey "$env:SECRET_BINGMAPS_KEY" -SecretSentry "$env:SECRET_SENTRY" -SecretGitHubOAuthClientId "$env:SECRET_GITHUB_OAUTH_CLIENT_ID"
+            -Branch                 "$env:BRANCH" `
+            -PackageManifestPath    "$env:PACKAGE_MANIFEST_PATH" `
+            -WorkingDir             "$env:WORKING_DIR" `
+            -Publisher              "$env:SECRET_PUBLISHER_NAME" `
+            -SecretBingMapsKey      "$env:SECRET_BINGMAPS_KEY" `
+            -SecretSentry           "$env:SECRET_SENTRY" `
+            -SecretGitHubOAuthClientId "$env:SECRET_GITHUB_OAUTH_CLIENT_ID"
         . './.github/scripts/Build-AppSolution.ps1' `
-          -Branch "$env:BUILD_BRANCH"
+            -Branch                 "$env:BUILD_BRANCH" `
+            -SolutionPath           "$env:SOLUTION_PATH" `
+            -StartupProjectPath     "$env:PACKAGE_PROJECT_PATH" `
+            -Configuration          "$env:CONFIGURATION" `
+            -Platform               "$env:PLATFORM" `
+            -AppxPackageDir         "$env:APPX_PACKAGE_DIR" `
+            -AppInstallerUrl        "$env:APP_INSTALLER_SIDELOAD_URL"
       env:
         SECRET_PUBLISHER_NAME: ${{ secrets.SIDELOAD_PUBLISHER_SECRET }}
         SECRET_BINGMAPS_KEY: ${{ secrets.BING_MAPS_SECRET }}
         SECRET_SENTRY: ${{ secrets.SENTRY_SECRET }}
         SECRET_GITHUB_OAUTH_CLIENT_ID: ${{ secrets.GH_OAUTH_CLIENT_ID }}
-
-    - name: Remove empty files from the packages
-      shell: bash
-      run: find $ARTIFACTS_STAGING_DIR -empty -delete
 
     - name: Sign Files with Azure Trusted Signing
       uses: azure/trusted-signing-action@v0.4.0
@@ -91,7 +98,7 @@ jobs:
     - name: Upload the packages to GitHub Actions
       uses: actions/upload-artifact@v4
       with:
-        name: 'Appx Packages ($env:BUILD_BRANCH)'
+        name: 'Appx Packages (${{ env.BRANCH }})'
         path: ${{ env.ARTIFACTS_STAGING_DIR }}
 
   store:
@@ -100,7 +107,7 @@ jobs:
     strategy:
       fail-fast: false
     env:
-      BUILD_BRANCH: 'StorePreview'
+      BRANCH: 'StorePreview'
 
     steps:
     - name: Checkout the repository
@@ -117,9 +124,20 @@ jobs:
     - name: Build Files
       run: |
         . './.github/scripts/Configure-AppxManifest.ps1' `
-          -Branch "$env:BUILD_BRANCH" -PackageManifestPath "$env:PACKAGE_MANIFEST_PATH" -WorkingDir "$env:WORKING_DIR" -Publisher "$env:SECRET_PUBLISHER_NAME" -SecretBingMapsKey "$env:SECRET_BINGMAPS_KEY" -SecretSentry "$env:SECRET_SENTRY" -SecretGitHubOAuthClientId "$env:SECRET_GITHUB_OAUTH_CLIENT_ID"
+            -Branch                 "$env:BRANCH" `
+            -PackageManifestPath    "$env:PACKAGE_MANIFEST_PATH" `
+            -WorkingDir             "$env:WORKING_DIR" `
+            -Publisher              "$env:SECRET_PUBLISHER_NAME" `
+            -SecretBingMapsKey      "$env:SECRET_BINGMAPS_KEY" `
+            -SecretSentry           "$env:SECRET_SENTRY" `
+            -SecretGitHubOAuthClientId "$env:SECRET_GITHUB_OAUTH_CLIENT_ID"
         . './.github/scripts/Build-AppSolution.ps1' `
-          -Branch "$env:BUILD_BRANCH"
+            -Branch                 "$env:BUILD_BRANCH" `
+            -SolutionPath           "$env:SOLUTION_PATH" `
+            -StartupProjectPath     "$env:PACKAGE_PROJECT_PATH" `
+            -Configuration          "$env:CONFIGURATION" `
+            -Platform               "$env:PLATFORM" `
+            -AppxPackageDir         "$env:APPX_PACKAGE_DIR"
       env:
         SECRET_PUBLISHER_NAME: ${{ secrets.STORE_PUBLISHER_SECRET }}
         SECRET_BINGMAPS_KEY: ${{ secrets.BING_MAPS_SECRET }}
@@ -129,5 +147,5 @@ jobs:
     - name: Upload the packages to GitHub Actions
       uses: actions/upload-artifact@v4
       with:
-        name: 'Appx Packages ($env:BUILD_BRANCH)'
+        name: 'Appx Packages (${{ env.BRANCH }})'
         path: ${{ env.ARTIFACTS_STAGING_DIR }}

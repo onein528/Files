@@ -3,31 +3,77 @@
 
 param(
     [string]$Branch = "", # This has to correspond with one of the AppEnvironment enum values
-    [string]$SolutionPath = ""
-    [string]$PackageManifestPath = "",
-    [string]$Publisher = "",
-    [string]$WorkingDir = "",
-    [string]$SecretBingMapsKey = "",
-    [string]$SecretSentry = "",
-    [string]$SecretGitHubOAuthClientId = ""
+    [string]$SolutionPath = "Files.sln"
+    [string]$StartupProjectPath = ""
+    [string]$Platform = "x64"
+    [string]$Configuration = "Debug"
+    [string]$AppxBundlePlatforms = "x64|arm64"
+    [string]$AppxPackageDir = ""
+    [string]$AppInstallerUrl = ""
+    [string]$AppxPackageCertKeyFile = ""
 )
 
 msbuild $SolutionPath `
   /t:Restore `
-  /p:Platform=$env:PLATFORM `
-  /p:Configuration=$env:CONFIGURATION `
+  /p:Platform=$Platform `
+  /p:Configuration=$Configuration `
   /p:PublishReadyToRun=true
 
-if ($Branch -eq "Dev")
+if ($Branch -eq "Debug")
 {
-    msbuild $SolutionPath `
-      /t:Build `
-      /p:Platform=$env:PLATFORM `
-      /p:Configuration=$env:CONFIGURATION `
-      /p:AppxBundlePlatforms=$env:APPX_BUNDLE_PLATFORMS `
-      /p:AppxPackageDir=$env:APPX_PACKAGE_DIR `
-      /p:AppxBundle=Always `
-      /p:UapAppxPackageBuildMode=Sideload `
-      /p:GenerateAppInstallerFile=True `
-      /p:AppInstallerUri=$env:APP_INSTALLER_SIDELOAD_URL
+    if ($Platform -eq "x64")
+    {
+        msbuild $StartupProjectPath `
+            /t:Build `
+            /clp:ErrorsOnly `
+            /p:Platform=$Platform `
+            /p:Configuration=$Configuration `
+            /p:AppxBundlePlatforms=$Platform `
+            /p:AppxBundle=Always `
+            /p:UapAppxPackageBuildMode=SideloadOnly `
+            /p:AppxPackageDir=$AppxPackageDir `
+            /p:AppxPackageSigningEnabled=true `
+            /p:PackageCertificateKeyFile=$AppxPackageCertKeyFile `
+            /p:PackageCertificatePassword="" `
+            /p:PackageCertificateThumbprint=""
+    }
+    else
+    {
+        msbuild $StartupProjectPath `
+            /t:Build `
+            /clp:ErrorsOnly `
+            /p:Platform=$Platform `
+            /p:Configuration=$Configuration `
+            /p:AppxBundle=Never `
+    }
+}
+elseif ($Branch -contains "Sideload")
+{
+    msbuild $StartupProjectPath `
+        /t:Build `
+        /p:Platform=$Platform `
+        /p:Configuration=$Configuration `
+        /p:AppxBundlePlatforms=$AppxBundlePlatforms `
+        /p:AppxPackageDir=$AppxPackageDir `
+        /p:AppxBundle=Always `
+        /p:UapAppxPackageBuildMode=Sideload `
+        /p:GenerateAppInstallerFile=True `
+        /p:AppInstallerUri=$AppInstallerUrl
+
+    $newSchema = 'http://schemas.microsoft.com/appx/appinstaller/2018'
+    $localFilePath = '$AppxPackageDir/Files.Package.appinstaller'
+    $fileContent = Get-Content $localFilePath
+    $fileContent = $fileContent.Replace('http://schemas.microsoft.com/appx/appinstaller/2017/2', $newSchema)
+    $fileContent | Set-Content $localFilePath
+}
+elseif ($Branch -contains "Store")
+{
+    msbuild $StartupProjectPath `
+        /t:Build `
+        /p:Platform=$Platform `
+        /p:Configuration=$Configuration `
+        /p:AppxBundlePlatforms=$AppxBundlePlatforms `
+        /p:AppxPackageDir=$AppxPackageDir `
+        /p:AppxBundle=Always `
+        /p:UapAppxPackageBuildMode=StoreUpload
 }

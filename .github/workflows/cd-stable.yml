@@ -45,12 +45,22 @@ jobs:
         global-json-file: global.json
 
     - name: Build Files
-      run: |
-        . './.github/scripts/Configure-AppxManifest.ps1' `
-          -Branch "$env:BUILD_BRANCH" `
-          -PackageManifestPath "$env:PACKAGE_MANIFEST_PATH" -WorkingDir "$env:WORKING_DIR" -Publisher "$env:SECRET_PUBLISHER_NAME" -SecretBingMapsKey "$env:SECRET_BINGMAPS_KEY" -SecretSentry "$env:SECRET_SENTRY" -SecretGitHubOAuthClientId "$env:SECRET_GITHUB_OAUTH_CLIENT_ID"
+      run: |        . './.github/scripts/Configure-AppxManifest.ps1' `
+            -Branch                 "$env:BRANCH" `
+            -PackageManifestPath    "$env:PACKAGE_MANIFEST_PATH" `
+            -WorkingDir             "$env:WORKING_DIR" `
+            -Publisher              "$env:SECRET_PUBLISHER_NAME" `
+            -SecretBingMapsKey      "$env:SECRET_BINGMAPS_KEY" `
+            -SecretSentry           "$env:SECRET_SENTRY" `
+            -SecretGitHubOAuthClientId "$env:SECRET_GITHUB_OAUTH_CLIENT_ID"
         . './.github/scripts/Build-AppSolution.ps1' `
-          -Branch "$env:BUILD_BRANCH"
+            -Branch                 "$env:BUILD_BRANCH" `
+            -SolutionPath           "$env:SOLUTION_PATH" `
+            -StartupProjectPath     "$env:PACKAGE_PROJECT_PATH" `
+            -Configuration          "$env:CONFIGURATION" `
+            -Platform               "$env:PLATFORM" `
+            -AppxPackageDir         "$env:APPX_PACKAGE_DIR" `
+            -AppInstallerUrl        "$env:APP_INSTALLER_SIDELOAD_URL"
       env:
         SIDELOAD_PUBLISHER_SECRET: ${{ secrets.SIDELOAD_PUBLISHER_SECRET }}
         SECRET_BINGMAPS_KEY: ${{ secrets.BING_MAPS_SECRET }}
@@ -117,9 +127,20 @@ jobs:
     - name: Build Files
       run: |
         . './.github/scripts/Configure-AppxManifest.ps1' `
-          -Branch "$env:BUILD_BRANCH" -PackageManifestPath "$env:PACKAGE_MANIFEST_PATH" -WorkingDir "$env:WORKING_DIR" -Publisher "$env:SECRET_PUBLISHER_NAME" -SecretBingMapsKey "$env:SECRET_BINGMAPS_KEY" -SecretSentry "$env:SECRET_SENTRY" -SecretGitHubOAuthClientId "$env:SECRET_GITHUB_OAUTH_CLIENT_ID"
+            -Branch                 "$env:BRANCH" `
+            -PackageManifestPath    "$env:PACKAGE_MANIFEST_PATH" `
+            -WorkingDir             "$env:WORKING_DIR" `
+            -Publisher              "$env:SECRET_PUBLISHER_NAME" `
+            -SecretBingMapsKey      "$env:SECRET_BINGMAPS_KEY" `
+            -SecretSentry           "$env:SECRET_SENTRY" `
+            -SecretGitHubOAuthClientId "$env:SECRET_GITHUB_OAUTH_CLIENT_ID"
         . './.github/scripts/Build-AppSolution.ps1' `
-          -Branch "$env:BUILD_BRANCH"
+            -Branch                 "$env:BUILD_BRANCH" `
+            -SolutionPath           "$env:SOLUTION_PATH" `
+            -StartupProjectPath     "$env:PACKAGE_PROJECT_PATH" `
+            -Configuration          "$env:CONFIGURATION" `
+            -Platform               "$env:PLATFORM" `
+            -AppxPackageDir         "$env:APPX_PACKAGE_DIR"
       env:
         SECRET_PUBLISHER_NAME: ${{ secrets.STORE_PUBLISHER_SECRET }}
         SECRET_BINGMAPS_KEY: ${{ secrets.BING_MAPS_SECRET }}

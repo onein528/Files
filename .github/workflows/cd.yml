@@ -1,11 +1,18 @@
 # Copyright (c) 2024 Files Community
 # Licensed under the MIT License. See the LICENSE.
 
-name: Files CD (Preview)
+name: Files CD
 
 on:
   workflow_dispatch:
     inputs:
+      build-branch:
+        type: choice
+        description: Build branch
+        options:
+        - Preview
+        - Stable
+        default: 'Preview'
       publish-to-store:
         type: boolean
         description: Publish to Store as well
@@ -21,7 +28,7 @@ env:
   PACKAGE_PROJECT_DIR:        '${{ github.workspace }}\src\Files.App (Package)'
   PACKAGE_PROJECT_PATH:       '${{ github.workspace }}\src\Files.App (Package)\Files.Package.wapproj'
   PACKAGE_MANIFEST_PATH:      '${{ github.workspace }}\src\Files.App (Package)\Package.appxmanifest'      
-  APP_INSTALLER_SIDELOAD_URL: 'https://cdn.files.community/files/preview/'
+  APP_INSTALLER_SIDELOAD_URL: 'https://cdn.files.community/files/${{ github.event.inputs.build-branch }}/'
 
 jobs:
   sideload:
@@ -30,7 +37,7 @@ jobs:
     strategy:
       fail-fast: false
     env:
-      BRANCH: 'SideloadPreview'
+      BRANCH: 'Sideload${{ github.event.inputs.build-branch }}'
 
     steps:
     - name: Checkout the repository
@@ -92,7 +99,12 @@ jobs:
 
     - name: Upload to Azure blob storage
       run: |
-        az storage blob upload-batch --account-name "filescommunity" --destination "files" --destination-path "preview" --source ${{ env.APPX_PACKAGE_DIR }} --overwrite true
+        az storage blob upload-batch `
+          --account-name "filescommunity"
+          --destination "files"
+          --destination-path "${{ github.event.inputs.build-branch }}"
+          --source "${{ env.APPX_PACKAGE_DIR }}"
+          --overwrite true
         az logout
 
     - name: Upload the packages to GitHub Actions
@@ -107,7 +119,7 @@ jobs:
     strategy:
       fail-fast: false
     env:
-      BRANCH: 'StorePreview'
+      BRANCH: 'Store${{ github.event.inputs.build-branch }}'
 
     steps:
     - name: Checkout the repository

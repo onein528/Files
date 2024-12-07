@@ -11,11 +11,11 @@ on:
         description: Publish to Store as well
 
 env:
-  SOLUTION_NAME:              'Files.sln'
   CONFIGURATION:              'Release'
   PLATFORM:                   'x64'
   APPX_BUNDLE_PLATFORMS:      'x64|arm64'
   WORKING_DIR:                '${{ github.workspace }}' # D:\a\Files\Files\
+  SOLUTION_PATH:              '${{ github.workspace }}\Files.sln'
   ARTIFACTS_STAGING_DIR:      '${{ github.workspace }}\artifacts'
   APPX_PACKAGE_DIR:           '${{ github.workspace }}\artifacts\AppxPackages'
   PACKAGE_PROJECT_DIR:        '${{ github.workspace }}\src\Files.App (Package)'
@@ -55,7 +55,7 @@ jobs:
             -SecretSentry           "$env:SECRET_SENTRY" `
             -SecretGitHubOAuthClientId "$env:SECRET_GITHUB_OAUTH_CLIENT_ID"
         . './.github/scripts/Build-AppSolution.ps1' `
-            -Branch                 "$env:BUILD_BRANCH" `
+            -Branch                 "$env:BRANCH" `
             -SolutionPath           "$env:SOLUTION_PATH" `
             -StartupProjectPath     "$env:PACKAGE_PROJECT_PATH" `
             -Configuration          "$env:CONFIGURATION" `
@@ -132,7 +132,7 @@ jobs:
             -SecretSentry           "$env:SECRET_SENTRY" `
             -SecretGitHubOAuthClientId "$env:SECRET_GITHUB_OAUTH_CLIENT_ID"
         . './.github/scripts/Build-AppSolution.ps1' `
-            -Branch                 "$env:BUILD_BRANCH" `
+            -Branch                 "$env:BRANCH" `
             -SolutionPath           "$env:SOLUTION_PATH" `
             -StartupProjectPath     "$env:PACKAGE_PROJECT_PATH" `
             -Configuration          "$env:CONFIGURATION" `

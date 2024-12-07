@@ -13,11 +13,8 @@ param(
     [string]$AppxPackageCertKeyFile = ""
 )
 
-msbuild $SolutionPath `
-  /t:Restore `
-  /p:Platform=$Platform `
-  /p:Configuration=$Configuration `
-  /p:PublishReadyToRun=true
+# Restore the solution
+msbuild $SolutionPath /t:Restore /p:Platform=$Platform /p:Configuration=$Configuration /p:PublishReadyToRun=true
 
 if ($Branch -eq "Debug")
 {

@@ -1,12 +1,6 @@
 # Copyright (c) 2024 Files Community
 # Licensed under the MIT License. See the LICENSE.
 
-# Abstract:
-#   This CI is executed when a new commit is created on the main branch or
-#   on a PR whose head branch is the main branch.
-#   However, the CI will not be executed if files not directly related to
-#   source code maintenance are updated.
-
 name: Files CI
 
 on:
@@ -111,11 +105,11 @@ jobs:
     - if: env.CONFIGURATION != env.AUTOMATED_TESTS_CONFIGURATION || env.ARCHITECTURE != env.AUTOMATED_TESTS_ARCHITECTURE
       name: Build Files
       run: |
-        . './.github/scripts/Build-AppSolution.ps1'
-            -Branch                 "$env:CONFIGURATION"
-            -SolutionPath           "$env:SOLUTION_PATH"
-            -StartupProjectPath     "$env:PACKAGE_PROJECT_PATH"
-            -Configuration          "$env:CONFIGURATION"
+        . './.github/scripts/Build-AppSolution.ps1' `
+            -Branch                 "$env:CONFIGURATION" `
+            -SolutionPath           "$env:SOLUTION_PATH" `
+            -StartupProjectPath     "$env:PACKAGE_PROJECT_PATH" `
+            -Configuration          "$env:CONFIGURATION" `
             -Platform               "$env:PLATFORM"
 
     - if: env.CONFIGURATION == env.AUTOMATED_TESTS_CONFIGURATION && env.ARCHITECTURE == env.AUTOMATED_TESTS_ARCHITECTURE
@@ -125,25 +119,25 @@ jobs:
         . './.github/scripts/Generate-SelfCertPfx.ps1' `
             -Destination            "$env:APPX_SELFSIGNED_CERT_PATH"
         # Restore and build
-        . './.github/scripts/Build-AppSolution.ps1'
-            -Branch                 "$env:CONFIGURATION"
-            -SolutionPath           "$env:SOLUTION_PATH"
-            -StartupProjectPath     "$env:PACKAGE_PROJECT_PATH"
-            -Configuration          "$env:CONFIGURATION"
-            -Platform               "$env:PLATFORM"
-            -AppxBundlePlatforms    "$env:PLATFORM"
-            -AppxPackageDir         "$env:APPX_PACKAGE_DIR"
+        . './.github/scripts/Build-AppSolution.ps1' `
+            -Branch                 "$env:CONFIGURATION" `
+            -SolutionPath           "$env:SOLUTION_PATH" `
+            -StartupProjectPath     "$env:PACKAGE_PROJECT_PATH" `
+            -Configuration          "$env:CONFIGURATION" `
+            -Platform               "$env:PLATFORM" `
+            -AppxBundlePlatforms    "$env:PLATFORM" `
+            -AppxPackageDir         "$env:APPX_PACKAGE_DIR" `
             -AppxPackageCertKeyFile "$env:APPX_SELFSIGNED_CERT_PATH"
         # Build test project
-        msbuild
-            $env:AUTOMATED_TESTS_PROJECT_PATH
-            /t:Build
-            /clp:ErrorsOnly
-            /p:Configuration=$env:CONFIGURATION
+        msbuild `
+            $env:AUTOMATED_TESTS_PROJECT_PATH `
+            /t:Build `
+            /clp:ErrorsOnly `
+            /p:Configuration=$env:CONFIGURATION `
             /p:Platform=$env:PLATFORM
-        Copy-Item
-            -Path                   "$env:AUTOMATED_TESTS_PROJECT_DIR\bin"
-            -Destination            "$env:AUTOMATED_TESTS_ASSEMBLY_DIR"
+        Copy-Item `
+            -Path                   "$env:AUTOMATED_TESTS_PROJECT_DIR\bin" `
+            -Destination            "$env:AUTOMATED_TESTS_ASSEMBLY_DIR" `
             -Recurse
 
     - if: env.ARCHITECTURE == env.AUTOMATED_TESTS_ARCHITECTURE && env.CONFIGURATION == env.AUTOMATED_TESTS_CONFIGURATION

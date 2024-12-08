@@ -10,12 +10,13 @@ on:
         type: choice
         description: Build branch
         options:
-        - Preview
-        - Stable
+        - 'Preview'
+        - 'Stable'
         default: 'Preview'
       publish-to-store:
         type: boolean
         description: Publish to Store as well
+        default: 'true'
 
 env:
   CONFIGURATION:              'Release'

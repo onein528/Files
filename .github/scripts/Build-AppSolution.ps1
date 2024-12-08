@@ -9,8 +9,8 @@ param(
     [string]$Configuration = "Debug"
     [string]$AppxBundlePlatforms = "x64|arm64"
     [string]$AppxPackageDir = ""
-    [string]$AppInstallerUrl = ""
-    [string]$AppxPackageCertKeyFile = ""
+    [string]$AppInstallerUrl = "" # Sideload only
+    [string]$AppxPackageCertKeyFile = "" # Debug only
 )
 
 # Restore the solution
@@ -41,7 +41,7 @@ if ($Branch -eq "Debug")
             /clp:ErrorsOnly `
             /p:Platform=$Platform `
             /p:Configuration=$Configuration `
-            /p:AppxBundle=Never `
+            /p:AppxBundle=Never
     }
 }
 elseif ($Branch -contains "Sideload")

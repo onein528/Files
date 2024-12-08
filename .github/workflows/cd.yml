@@ -38,7 +38,7 @@ jobs:
     strategy:
       fail-fast: false
     env:
-      BRANCH: 'Sideload${{ github.event.inputs.build-branch }}'
+      BRANCH: 'Sideload${{ github.event.inputs.build-branch }}' # This is either SideloadPreview or SideloadStable
 
     steps:
     - name: Checkout the repository
@@ -101,10 +101,10 @@ jobs:
     - name: Upload to Azure blob storage
       run: |
         az storage blob upload-batch `
-          --account-name "filescommunity"
-          --destination "files"
-          --destination-path "${{ github.event.inputs.build-branch }}"
-          --source "${{ env.APPX_PACKAGE_DIR }}"
+          --account-name "filescommunity" `
+          --destination "files" `
+          --destination-path "${{ github.event.inputs.build-branch }}" `
+          --source "${{ env.APPX_PACKAGE_DIR }}" `
           --overwrite true
         az logout
 
@@ -120,7 +120,7 @@ jobs:
     strategy:
       fail-fast: false
     env:
-      BRANCH: 'Store${{ github.event.inputs.build-branch }}'
+      BRANCH: 'Store${{ github.event.inputs.build-branch }}' # This is either StorePreview or StoreStable
 
     steps:
     - name: Checkout the repository
@@ -156,6 +156,17 @@ jobs:
         SECRET_BINGMAPS_KEY: ${{ secrets.BING_MAPS_SECRET }}
         SECRET_SENTRY: ${{ secrets.SENTRY_SECRET }}
         SECRET_GITHUB_OAUTH_CLIENT_ID: ${{ secrets.GH_OAUTH_CLIENT_ID }}
+
+    - name: Publish the packages to Microsoft Store
+      uses: isaacrlevin/windows-store-action@1
+      with:
+        app-id: '9NGHP3DX8HDX'
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
+        package-path: '${{ env.ARTIFACTS_STAGING_DIR }}/**/*.msixupload'
+        skip-polling: false
+        packages-keep: 5
 
     - name: Upload the packages to GitHub Actions
       uses: actions/upload-artifact@v4
